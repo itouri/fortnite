@@ -1,0 +1,16 @@
+version: '2'
+
+services:
+  mysql:
+    build: ./docker/mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: sample_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./docker/mysql/data/:/var/lib/mysql/
+      - ./docker/mysql/log/:/var/log/mysql/
