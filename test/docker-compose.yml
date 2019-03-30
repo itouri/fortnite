@@ -2,7 +2,7 @@ version: '2'
 
 services:
   mysql:
-    build: ./docker/mysql
+    build: ./mysql
     restart: always
     environment:
       MYSQL_DATABASE: sample_db
@@ -12,5 +12,5 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./docker/mysql/data/:/var/lib/mysql/
-      - ./docker/mysql/log/:/var/log/mysql/
+      - ./mysql/data/:/var/lib/mysql/
+      - ./mysql/log/:/var/log/mysql/

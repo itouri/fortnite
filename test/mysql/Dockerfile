@@ -1,2 +1,2 @@
 FROM mysql
-RUN touch /var/log/mysql/mysqld.log
+#RUN touch /var/log/mysql/mysqld.log
