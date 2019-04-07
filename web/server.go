@@ -12,6 +12,8 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/itouri/fortnite/web/middleware"
+	_playerRepo "github.com/itouri/fortnite/web/player/repository"
+	_playerUcase "github.com/itouri/fortnite/web/player/usecase"
 )
 
 func init() {
@@ -59,11 +61,13 @@ func main() {
 	e.Use(mid.CORS)
 
 	// Add repo
+	playerRepo = _playerRepo.NewPlayerRepository(dbConn)
 
-	// LEAR
+	// LEARN
 	timeoutContext := time.Duration(viper.GetInt("context.timeout")) * time.Second
 
 	// Add usecase
+	playerUcase = _playerUcase.NewPlayerUsecase(playerRepo, timeoutContext)
 
 	e.Start(viper.GetString("server.address"))
 }

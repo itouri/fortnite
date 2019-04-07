@@ -3,7 +3,9 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"fmt"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -54,10 +56,31 @@ func NewMysqlPlayerRepository(Conn *sql.DB) player.Repository {
 	return &mysqlPlayerRepository{Conn}
 }
 
+func (m *mysqlPlayerRepository) Fetch(ctx context.Context, cursor string, num int64) ([]*domain.Player, string, error) {
+
+	query := `SELECT id, name, icon_path, cover_img_path, created_at, updated,at
+				FROM players WHERE created_at > ? ORDER BY created_at LIMIT ? `
+	decodedCursor, err := DecodeCursor(cursor)
+	if err != nil && cursor != "" {
+		return nil, "", domain.ErrBadParamInput
+	}
+	res, err := m.fetch(ctx, query, decodedCursor, num)
+	if err != nil {
+		return nil, "", err
+	}
+	nextCursor := ""
+	//LEARN
+	if len(res) == int(num) {
+		nextCursor = EncodeCursor(res[len(res)-1].CreatedAt)
+	}
+	return res, nextCursor, err
+}
+
 func (m *mysqlPlayerRepository) GetByID(ctx context.Context, id int64) (*domain.Player, error) {
 
 	//FIXME アスタリスクではダメなの？
-	query := `SELECT id, name, icon_path, cover_img_path FROM players WHERE ID = ?`
+	query := `SELECT id, name, icon_path, cover_img_path, created_at, updated_at
+				FROM players WHERE ID = ?`
 	list, err := m.fetch(ctx, query, id)
 	if err != nil {
 		return nil, err
@@ -148,4 +171,23 @@ func (m *mysqlPlayerRepository) Update(ctx context.Context, p *domain.Player) er
 		return err
 	}
 	return nil
+}
+
+//LEARN 何をしている？
+func DecodeCursor(encodedTime string) (time.Time, error) {
+	b, err := base64.StdEncoding.DecodeString(encodedTime)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	timeString := string(b)
+	t, err := time.Parse(timeFormat, timeString)
+	return t, err
+}
+
+//LEARN 何をしている？
+func EncodeCursor(t time.Time) string {
+	timeString := t.Format(timeFormat)
+
+	return base64.StdEncoding.EncodeToString([]byte(timeString))
 }
